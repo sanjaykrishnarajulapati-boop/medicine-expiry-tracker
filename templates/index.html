@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Expiry Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="brand-mark">M</div>
+    <div>
+        <h1>Medicine Expiry Tracker</h1>
+        <p>Keep track of the expiry dates of medicines at home</p>
+    </div>
+</header>
+
+<div class="account-bar">
+    <span>Logged in as: <strong>{{ current_user.username }}</strong></span>
+
+    <form action="{{ url_for('logout') }}" method="POST">
+        <button type="submit" class="delete-button">Logout</button>
+    </form>
+</div>
+
+<main class="container">
+
+    <section class="intro">
+        <div>
+            <p class="eyebrow">HOME MEDICINE ORGANIZER</p>
+            <h2>Know what expires next.</h2>
+            <p class="muted">Manage your medicines in one place.</p>
+        </div>
+
+        <div class="today-pill">
+            Today: {{ today.strftime("%d %b %Y") }}
+        </div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- DASHBOARD CARDS -->
+
+    <section class="dashboard">
+
+        <div class="dashboard-card total-card">
+            <div class="card-icon">💊</div>
+            <p>Total Medicines</p>
+            <h2>{{ dashboard.total }}</h2>
+        </div>
+
+        <div class="dashboard-card expired-card">
+            <div class="card-icon">⚠️</div>
+            <p>Expired Medicines</p>
+            <h2>{{ dashboard.expired }}</h2>
+        </div>
+
+        <div class="dashboard-card soon-card">
+            <div class="card-icon">⏰</div>
+            <p>Expiring Soon</p>
+            <h2>{{ dashboard.expiring_soon }}</h2>
+        </div>
+
+        <div class="dashboard-card safe-card">
+            <div class="card-icon">✓</div>
+            <p>Not Yet Expired</p>
+            <h2>{{ dashboard.safe }}</h2>
+        </div>
+
+    </section>
+
+    <!-- ADD MEDICINE FORM -->
+
+    <section class="panel">
+
+        <div class="section-heading">
+            <div>
+                <h3>Add a medicine</h3>
+                <p class="muted">Enter the details shown on the package.</p>
+            </div>
+        </div>
+
+        <form action="{{ url_for('add_medicine') }}"
+              method="POST"
+              class="medicine-form">
+
+            <label>
+                Medicine name
+                <input type="text" name="name"
+                       placeholder="e.g. Paracetamol"
+                       maxlength="80" required>
+            </label>
+
+            <label>
+                Quantity
+                <input type="number" name="quantity"
+                       min="1" placeholder="e.g. 10" required>
+            </label>
+
+            <label>
+                Expiry date
+                <input type="date" name="expiry_date" required>
+            </label>
+
+            <label class="wide">
+                Notes (optional)
+                <input type="text" name="notes"
+                       placeholder="Additional information"
+                       maxlength="160">
+            </label>
+
+            <button type="submit" class="primary-button">
+                Add medicine
+            </button>
+
+        </form>
+
+    </section>
+
+    <!-- MEDICINE TABLE -->
+
+    <section class="panel">
+
+        <div class="section-heading">
+            <div>
+                <h3>Your medicines</h3>
+                <p class="muted">Your saved medicine records.</p>
+            </div>
+
+            <span class="count">
+                {{ medicines|length }} record(s)
+            </span>
+        </div>
+
+        {% if medicines %}
+
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for medicine in medicines %}
+
+                    <tr>
+                        <td class="medicine-name">
+                            {{ medicine.name }}
+                        </td>
+
+                        <td>{{ medicine.quantity }}</td>
+
+                        <td>{{ medicine.expiry_date }}</td>
+
+                        <td>
+                            {% if medicine.status == "Expired" %}
+                                <span class="status expired">
+                                    Expired
+                                </span>
+
+                            {% elif medicine.status == "Expiring soon" %}
+                                <span class="status soon">
+                                    {% if medicine.days_left == 0 %}
+                                        Expires today
+                                    {% else %}
+                                        {{ medicine.days_left }} day(s) left
+                                    {% endif %}
+                                </span>
+
+                            {% else %}
+                                <span class="status safe">
+                                    Not yet expired
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ medicine.notes or "—" }}</td>
+
+                        <td>
+                            <form action="{{ url_for('delete_medicine', medicine_id=medicine.id) }}"
+                                  method="POST">
+                                <button type="submit" class="delete-button">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <div class="empty-icon">＋</div>
+            <h4>No medicines added yet</h4>
+            <p>Add your first medicine using the form above.</p>
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    <section class="notice">
+        <strong>Important:</strong>
+        This website tracks expiry dates entered by users.
+        Always check medicine packaging and consult a pharmacist
+        or healthcare professional if you are unsure.
+        This website does not determine whether a medicine is
+        safe to consume.
+    </section>
+
+</main>
+
+<footer>
+    Medicine Expiry Tracker | Python Project
+</footer>
+
+</body>
+</html>

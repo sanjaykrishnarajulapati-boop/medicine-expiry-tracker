@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Medicine Expiry Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand-mark">M</div>
+    <div>
+        <h1>Medicine Expiry Tracker</h1>
+        <p>Create your personal account</p>
+    </div>
+</header>
+
+<main class="container">
+    <section class="panel">
+        <h2>Create an account</h2>
+        <p class="muted">Register to manage your own medicine records.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form action="{{ url_for('register') }}" method="POST" class="medicine-form">
+            <label class="wide">
+                Username
+                <input type="text" name="username"
+                       maxlength="80" required
+                       placeholder="Choose a username">
+            </label>
+
+            <label class="wide">
+                Password
+                <input type="password" name="password"
+                       minlength="8" required
+                       placeholder="At least 8 characters">
+            </label>
+
+            <button type="submit" class="primary-button">
+                Create account
+            </button>
+        </form>
+
+        <p>Already have an account?
+            <a href="{{ url_for('login') }}">Login here</a>
+        </p>
+    </section>
+</main>
+
+</body>
+</html>
